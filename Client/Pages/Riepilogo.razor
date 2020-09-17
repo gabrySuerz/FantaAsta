@@ -1,0 +1,43 @@
+@page "/riepilogo"
+@using FantaAsta.Shared
+@inject HttpClient Http
+
+<h1>Riepilogo asta</h1>
+
+@if (GiocatoriAggiudicati != null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th></th>
+            <th>Nome giocatore</th>
+            <th>Offerente vincitore</th>
+            <th>Importo</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var giocatore in GiocatoriAggiudicati)
+        {
+            <tr>
+                <td><img src="@giocatore.Giocatore?.Img" /></td>
+                <td>@giocatore.Giocatore?.Nome</td>
+                <td>@giocatore.OfferenteVincitore</td>
+                <td>@giocatore.ImportoOfferta</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    public GiocatoreAggiudicato[] GiocatoriAggiudicati;
+
+    protected override async Task OnInitializedAsync()
+    {
+        GiocatoriAggiudicati = await Http.GetFromJsonAsync<GiocatoreAggiudicato[]>("FantaAsta/GiocatoriAggiudicati");
+    }
+}

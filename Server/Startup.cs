@@ -1,5 +1,10 @@
+using System;
+using System.ComponentModel;
+using FantaAsta.Server.Hubs;
+using FantaAsta.Server.Services;
+using FantaAsta.Server.Services.Interfaces;
+using FantaAsta.Shared;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
@@ -22,14 +27,23 @@ namespace FantaAsta.Server
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-
+            services.Configure<DataApi>(Configuration.GetSection(nameof(DataApi)));
+            services.AddSingleton<IFantaGestoreService, FantaGestoreService>();
+            services.AddSignalR();
             services.AddControllersWithViews();
             services.AddRazorPages();
+            services.AddResponseCompression(opts =>
+            {
+                opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+                    new[] { "application/octet-stream" });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseResponseCompression();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -51,7 +65,8 @@ namespace FantaAsta.Server
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapRazorPages();
-                endpoints.MapControllers();
+                endpoints.MapControllerRoute("default", "api/{controller=Home}/{action=Index}/{id?}");
+                endpoints.MapHub<FantaHub>("/fantahub");
                 endpoints.MapFallbackToFile("index.html");
             });
         }

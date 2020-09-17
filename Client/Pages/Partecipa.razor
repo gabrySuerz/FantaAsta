@@ -1,0 +1,66 @@
+﻿@page "/partecipa"
+@using FantaAsta.Shared
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager NavigationManager
+@implements IDisposable
+
+<h1>Mancano @TempoRimastoAllOfferta.TotalSeconds s all'invio dell'offerta</h1>
+
+<p>Stai concorrendo per: @Giocatore.Nome</p>
+
+
+@code {
+    private HubConnection _hubConnection;
+
+    public TimeSpan TempoRimastoAllOfferta;
+    public Giocatore Giocatore;
+    public Offerta Offerta;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/fantahub"))
+            .Build();
+
+        _hubConnection.On<Giocatore>("InvioGiocatore", giocatore =>
+        {
+            TempoRimastoAllOfferta = new TimeSpan(0, 0, 20);
+            Offerta = new Offerta
+            {
+                GiocatoreId = giocatore.Id,
+                Offerente = "",
+                Importo = 0
+            };
+            InizioAstaPerGiocatore(giocatore);
+        });
+
+        await _hubConnection.StartAsync();
+    }
+
+    private async void InizioAstaPerGiocatore(Giocatore giocatore)
+    {
+        while (TempoRimastoAllOfferta < new TimeSpan())
+        {
+            await Task.Delay(1000);
+            TempoRimastoAllOfferta = TempoRimastoAllOfferta.Subtract(new TimeSpan(0, 0, 1));
+            StateHasChanged();
+        }
+        if (Connesso)
+        {
+            await InvioOfferta();
+            Giocatore = null;
+            Offerta = null;
+        }
+        StateHasChanged();
+    }
+
+    Task InvioOfferta() => _hubConnection.SendAsync("InvioOfferta", Offerta);
+
+    public bool Connesso => _hubConnection.State == HubConnectionState.Connected;
+
+    public void Dispose()
+    {
+        _ = _hubConnection.DisposeAsync();
+    }
+
+}
