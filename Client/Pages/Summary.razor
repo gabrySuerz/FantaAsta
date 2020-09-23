@@ -1,0 +1,49 @@
+@page "/summary"
+@using FantasyAuction.Shared
+@inject HttpClient Http
+
+<h1>Riepilogo asta</h1>
+
+@if (SoldPlayers != null)
+{
+    <p>
+        <em>Loading...</em>
+    </p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Nome giocatore</th>
+                <th>Offerente vincitore</th>
+                <th>Importo</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var soldPlayer in SoldPlayers)
+            {
+                <tr>
+                    <td>
+                        <img src="@soldPlayer.Player?.Img" />
+                    </td>
+                    <td>@soldPlayer.Player?.Nome</td>
+                    <td>@soldPlayer.BiddingWinner</td>
+                    <td>@soldPlayer.OfferAmount</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    public SoldPlayer[] SoldPlayers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var a = await Http.GetFromJsonAsync<SoldPlayer[]>("api/Auction/SoldPlayers");
+        SoldPlayers = new SoldPlayer[] { };
+    }
+
+}

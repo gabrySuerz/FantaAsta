@@ -1,8 +1,8 @@
 ﻿using Newtonsoft.Json;
 
-namespace FantaAsta.Shared
+namespace FantasyAuction.Shared
 {
-    public class Giocatore
+    public class Player
     {
         [JsonProperty("id")] public string Id { get; set; }
 
@@ -162,6 +162,6 @@ namespace FantaAsta.Shared
 
         [JsonProperty("deleted")] public string Deleted { get; set; }
 
-        [JsonProperty("squadra")] public Squadra Squadra { get; set; }
+        [JsonProperty("squadra")] public Team Squadra { get; set; }
     }
 }

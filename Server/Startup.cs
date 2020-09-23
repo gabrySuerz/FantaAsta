@@ -1,9 +1,7 @@
-using System;
-using System.ComponentModel;
-using FantaAsta.Server.Hubs;
-using FantaAsta.Server.Services;
-using FantaAsta.Server.Services.Interfaces;
-using FantaAsta.Shared;
+using FantasyAuction.Server.Hubs;
+using FantasyAuction.Server.Services;
+using FantasyAuction.Server.Services.Interfaces;
+using FantasyAuction.Shared;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -11,8 +9,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Linq;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
-namespace FantaAsta.Server
+namespace FantasyAuction.Server
 {
     public class Startup
     {
@@ -28,7 +30,7 @@ namespace FantaAsta.Server
         public void ConfigureServices(IServiceCollection services)
         {
             services.Configure<DataApi>(Configuration.GetSection(nameof(DataApi)));
-            services.AddSingleton<IFantaGestoreService, FantaGestoreService>();
+            services.AddSingleton<IAuctionHandlerService, AuctionHandlerService>();
             services.AddSignalR();
             services.AddControllersWithViews();
             services.AddRazorPages();
@@ -56,6 +58,21 @@ namespace FantaAsta.Server
                 app.UseHsts();
             }
 
+            // CAREFUL: Place this before UsaStaticFiles
+            app.UseExceptionHandler(a => a.Run(async context =>
+            {
+                var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
+                var exception = exceptionHandlerPathFeature.Error;
+
+                var result = JsonConvert.SerializeObject(new Exception(exception.Message),
+                    new JsonSerializerSettings()
+                    {
+                        ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver()
+                    });
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsync(result);
+            }));
+
             app.UseHttpsRedirection();
             app.UseBlazorFrameworkFiles();
             app.UseStaticFiles();
@@ -65,10 +82,13 @@ namespace FantaAsta.Server
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapRazorPages();
-                endpoints.MapControllerRoute("default", "api/{controller=Home}/{action=Index}/{id?}");
-                endpoints.MapHub<FantaHub>("/fantahub");
+                endpoints.MapControllers();
+                endpoints.MapHub<AuctionHub>("/auction-hub");
                 endpoints.MapFallbackToFile("index.html");
             });
+
+            IAuctionHandlerService auctionHandler = app.ApplicationServices.GetRequiredService<IAuctionHandlerService>();
+            auctionHandler.RefreshPlayersData();
         }
     }
 }

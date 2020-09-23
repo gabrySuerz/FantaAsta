@@ -1,9 +1,9 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 
-namespace FantaAsta.Shared
+namespace FantasyAuction.Shared
 {
-    public class RispostaEndpoint
+    public class EndpointResponse
     {
         [JsonProperty("draw")] public int Draw { get; set; }
 
@@ -17,6 +17,6 @@ namespace FantaAsta.Shared
 
         [JsonProperty("order_dir")] public bool OrderDir { get; set; }
 
-        [JsonProperty("data")] public IEnumerable<Giocatore> Data { get; set; }
+        [JsonProperty("data")] public IEnumerable<Player> Data { get; set; }
     }
 }

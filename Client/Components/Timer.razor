@@ -1,0 +1,83 @@
+﻿<style>
+    #clockdiv {
+        font-family: sans-serif;
+        color: #fff;
+        display: inline-block;
+        font-weight: 100;
+        text-align: center;
+        font-size: 30px;
+    }
+
+        #clockdiv > div {
+            padding: 10px;
+            border-radius: 3px;
+            background: #00BF96;
+            display: inline-block;
+        }
+
+        #clockdiv div > span {
+            padding: 15px;
+            border-radius: 3px;
+            background: #00816A;
+            display: inline-block;
+        }
+
+    .smalltext {
+        padding-top: 5px;
+        font-size: 16px;
+    }
+</style>
+<div id="clockdiv">
+    <div>
+        <span>@Time.Days</span>
+        <div class="smalltext">Days</div>
+    </div>
+    <div>
+        <span>@Time.Hours</span>
+        <div class="smalltext">Hours</div>
+    </div>
+    <div>
+        <span>@Time.Minutes</span>
+        <div class="smalltext">Minutes</div>
+    </div>
+    <div>
+        <span>@Time.Seconds</span>
+        <div class="smalltext">Seconds</div>
+    </div>
+</div>
+
+@code {
+
+    private TimeSpan _time;
+
+    [Parameter]
+    public TimeSpan Time
+    {
+        get => _time;
+        set
+        {
+            _time = value;
+            StartCountdown();
+        }
+    }
+
+    [Parameter]
+    public EventCallback<TimeSpan> TimeChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> TimeFinished { get; set; }
+
+    private async void StartCountdown()
+    {
+        while (_time > new TimeSpan())
+        {
+            await Task.Delay(1000);
+            _time = _time.Subtract(new TimeSpan(0, 0, 1));
+            StateHasChanged();
+            await TimeChanged.InvokeAsync(Time);
+        }
+
+        await TimeFinished.InvokeAsync(true);
+    }
+
+}

@@ -1,0 +1,59 @@
+﻿<div class="navbar navbar-dark pl-4 top-row">
+    <a class="navbar-brand"
+       href="">
+        FantaAsta
+    </a>
+    <button class="navbar-toggler" @onclick="ToggleNavMenu">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+</div>
+
+<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+    <ul class="flex-column nav">
+        <li class="nav-item px-3">
+            <NavLink class="nav-link"
+                     href=""
+                     Match="NavLinkMatch.All">
+                <span aria-hidden="true"
+                      class="oi oi-home">
+                </span> Home
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link"
+                     href="partecipate">
+                <span aria-hidden="true"
+                      class="oi oi-plus">
+                </span> Partecipa
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link"
+                     href="administration">
+                <span aria-hidden="true"
+                      class="oi oi-cog">
+                </span> Gestione
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link"
+                     href="summary">
+                <span aria-hidden="true"
+                      class="oi oi-list-rich">
+                </span> Riepilogo
+            </NavLink>
+        </li>
+    </ul>
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+}

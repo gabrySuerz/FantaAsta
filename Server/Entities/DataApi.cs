@@ -1,4 +1,4 @@
-﻿namespace FantaAsta.Shared
+﻿namespace FantasyAuction.Shared
 {
     public class DataApi
     {

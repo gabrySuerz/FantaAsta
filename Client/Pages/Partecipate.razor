@@ -1,0 +1,163 @@
+﻿@page "/partecipate"
+@using FantasyAuction.Shared
+@using Microsoft.AspNetCore.SignalR.Client
+@using FantasyAuction.Client.Entities
+@inject NavigationManager NavigationManager
+@inject AlertService AlertService
+@implements IDisposable
+
+@if (!IsAuctionInProgress)
+{
+    <div class="align-items-center d-flex flex-column justify-content-center">
+        <h1>Aspettando l'inizio dell'asta</h1>
+    </div>
+}
+@if (IsAuctionInProgress && Player == null)
+{
+    <div class="align-items-center d-flex flex-column justify-content-center">
+        <h1>Aspettando il prossimo giocatore</h1>
+        <Timer Time="@RemainingTimeToNextPlayer"></Timer>
+    </div>
+}
+@if (Player != null)
+{
+    <div class="align-items-center d-flex flex-column justify-content-center">
+        <h1>All'invio dell'offerta mancano</h1>
+        <Timer Time="@RemainingTimeToBid"
+               TimeFinished="e => SendBidAndClear()">
+        </Timer>
+    </div>
+}
+
+<div class="align-items-center d-flex flex-column justify-content-center w-100 mt-4">
+    <div class="form-group">
+        <label for="bidderName">Digita il tuo nome offerente</label>
+        <input aria-describedby="bidderNameHelp"
+               @bind-value="Bidder"
+               class="form-control"
+               disabled="@(IsAuctionInProgress && Player != null)"
+               id="bidderName"
+               type="text">
+        <small class="form-text text-muted"
+               id="bidderNameHelp">
+            In caso non ci sia impostato un nome l'offerta non verrà inviata.
+        </small>
+    </div>
+</div>
+
+@if (Player != null)
+{
+    <div class="align-items-center d-flex flex-column justify-content-center">
+        <div class="card text-center">
+            <img alt="@Player.Nome"
+                 class="card-img-top"
+                 src="@Player.Img" />
+            <div class="card-body">
+                <h5 class="card-title">@Player.Nome</h5>
+                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">FM</span>
+                    </div>
+                    <input aria-label="Amount (to the nearest million)"
+                           @bind-value="Bid.Amount"
+                           class="form-control"
+                           type="text">
+                    <div class="input-group-append">
+                        <span class="input-group-text">.000.000,00</span>
+                    </div>
+                </div>
+                @*<button class="btn btn-primary"
+                        @onclick="SendBidAndClear">
+                    Se invii prima l'offerta avrai la precedenza
+                </button>*@
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private HubConnection _hubConnection;
+
+    public TimeSpan RemainingTimeToNextPlayer;
+    public TimeSpan RemainingTimeToBid;
+    public Player Player;
+    public Bid Bid;
+    public int WaitingTime;
+    public bool IsAuctionInProgress;
+    public string Bidder;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Starts the connection and waits for players to be send
+        _hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/auction-hub"))
+            .Build();
+
+        _hubConnection.On<int>("StartAuction", (waitingTime) =>
+        {
+            AlertService.AddMessage(new Alert("L'asta è cominciata", AlertType.Info));
+            IsAuctionInProgress = true;
+            WaitingTime = waitingTime;
+            RemainingTimeToNextPlayer = new TimeSpan(0, 0, WaitingTime);
+            StateHasChanged();
+        });
+
+        _hubConnection.On<Player>("ReceivePlayer", player =>
+        {
+            RemainingTimeToBid = new TimeSpan(0, 0, 20);
+            Player = player;
+            Bid = new Bid
+            {
+                PlayerId = player.Id,
+                Bidder = Bidder,
+                Amount = 0
+            };
+            RemainingTimeToNextPlayer = new TimeSpan(0, 0, WaitingTime);
+            StateHasChanged();
+        });
+
+        _hubConnection.On("AuctionEnded", () => { IsAuctionInProgress = false; });
+
+        await _hubConnection.StartAsync();
+    }
+
+    /// <summary>
+    /// When the time is expired the sends the bid
+    /// </summary>
+    private async void SendBidAndClear()
+    {
+        if (Connected && !string.IsNullOrWhiteSpace(Bidder) && Player != null && Bid != null)
+        {
+            await SendBid();
+        }
+        else
+        {
+            AlertService.AddMessage(new Alert("La tua offerta non può essere inviata, salti questo turno", AlertType.Danger));
+        }
+
+        Player = null;
+        Bid = null;
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Send the bid
+    /// </summary>
+    /// <returns></returns>
+    private Task SendBid()
+    {
+        return _hubConnection.SendAsync("SendBid", Bid);
+    }
+
+    /// <summary>
+    /// Status of connection
+    /// </summary>
+    private bool Connected => _hubConnection.State == HubConnectionState.Connected;
+
+    public void Dispose()
+    {
+        _ = _hubConnection.DisposeAsync();
+    }
+
+}

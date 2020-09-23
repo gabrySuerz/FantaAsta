@@ -1,0 +1,86 @@
+@page "/administration"
+@using FantasyAuction.Shared
+@inject HttpClient Http
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12 justify-content-center">
+            <button class="btn btn-primary"
+                    @onclick="StartAutomaticAuction">
+                Inizio asta automatica
+            </button>
+            <button class="btn btn-primary"
+                    @onclick="RefreshPlayers">
+                Ricarica giocatori
+            </button>
+        </div>
+    </div>
+</div>
+
+
+@if (Players != null)
+{
+    <p>
+        <em>Loading...</em>
+    </p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Nome giocatore</th>
+                <th>Costo</th>
+                <th>Squadra</th>
+                <th>Azioni</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var giocatore in Players)
+            {
+                <tr>
+                    <td>
+                        <img src="@giocatore.Img" />
+                    </td>
+                    <td>@giocatore.Nome</td>
+                    <td>@giocatore.Costo</td>
+                    <td>@giocatore.Squadra.Nome</td>
+                    <td>
+                        <button disabled="@AuctionState"
+                                @onclick="() => StartPlayerNegotiation(giocatore.Id)">
+                            Negozia giocatore
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    public IEnumerable<Player> Players;
+    public bool AuctionState;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // var a = await Http.GetAsync("api/Auction/GetPlayers");
+        Players = new List<Player>();
+    }
+
+    private async void StartAutomaticAuction()
+    {
+        await Http.PatchAsync($"api/Auction/StartAuction", null);
+    }
+
+    private async void StartPlayerNegotiation(string playerId)
+    {
+        await Http.PatchAsync($"api/Auction/StartPlayerNegotiation/{playerId}", null);
+    }
+
+    private async void RefreshPlayers()
+    {
+        await Http.PatchAsync($"api/Auction/RefreshPlayersData", null);
+    }
+
+}
