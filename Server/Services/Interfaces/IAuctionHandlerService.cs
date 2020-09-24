@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using FantasyAuction.Shared;
+﻿using FantasyAuction.Shared;
+using System.Collections.Generic;
 
 namespace FantasyAuction.Server.Services.Interfaces
 {

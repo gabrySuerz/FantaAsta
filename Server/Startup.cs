@@ -1,3 +1,4 @@
+using System;
 using FantasyAuction.Server.Hubs;
 using FantasyAuction.Server.Services;
 using FantasyAuction.Server.Services.Interfaces;
@@ -9,10 +10,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Linq;
+using AutoMapper;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Exception = FantasyAuction.Shared.Exception;
 
 namespace FantasyAuction.Server
 {
@@ -39,6 +42,8 @@ namespace FantasyAuction.Server
                 opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
                     new[] { "application/octet-stream" });
             });
+
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

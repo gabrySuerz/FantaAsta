@@ -1,7 +1,7 @@
-﻿using Newtonsoft.Json;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 
-namespace FantasyAuction.Shared
+namespace FantasyAuction.Server.Entities
 {
     public class EndpointResponse
     {
@@ -17,6 +17,6 @@ namespace FantasyAuction.Shared
 
         [JsonProperty("order_dir")] public bool OrderDir { get; set; }
 
-        [JsonProperty("data")] public IEnumerable<Player> Data { get; set; }
+        [JsonProperty("data")] public IEnumerable<EndpointPlayer> Data { get; set; }
     }
 }

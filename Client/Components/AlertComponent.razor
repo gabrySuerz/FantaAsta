@@ -31,9 +31,9 @@
 </style>
 
 <div class="alert-service">
-    @for (int c = 0; c < AlertService.messages.Count; c++)
+    @for (int c = 0; c < AlertService.Messages.Count; c++)
     {
-        <span class="alert @getAlertClass(AlertService.messages[c])">@AlertService.messages[c].Message</span>
+        <span class="alert @getAlertClass(AlertService.Messages[c])">@AlertService.Messages[c].Message</span>
     }
 </div>
 
@@ -47,7 +47,7 @@
 
     private String getAlertClass(IAlert alert)
     {
-        return String.Format("alert-{0}", alert.AlertType.ToString().ToLower());
+        return $"alert-{alert.AlertType.ToString().ToLower()}";
     }
 
     private void Refresh()

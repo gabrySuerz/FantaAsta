@@ -4,7 +4,7 @@
 
 <h1>Riepilogo asta</h1>
 
-@if (SoldPlayers != null)
+@if (SoldPlayers == null)
 {
     <p>
         <em>Loading...</em>
@@ -42,8 +42,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var a = await Http.GetFromJsonAsync<SoldPlayer[]>("api/Auction/SoldPlayers");
-        SoldPlayers = new SoldPlayer[] { };
+        SoldPlayers = await Http.GetFromJsonAsync<SoldPlayer[]>("api/Auction/SoldPlayers");
     }
 
 }

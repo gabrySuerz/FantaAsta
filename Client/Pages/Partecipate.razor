@@ -68,9 +68,9 @@
                     </div>
                 </div>
                 @*<button class="btn btn-primary"
-                        @onclick="SendBidAndClear">
-                    Se invii prima l'offerta avrai la precedenza
-                </button>*@
+                            @onclick="SendBidAndClear">
+                        Se invii prima l'offerta avrai la precedenza
+                    </button>*@
             </div>
         </div>
     </div>
@@ -83,7 +83,6 @@
     public TimeSpan RemainingTimeToBid;
     public Player Player;
     public Bid Bid;
-    public int WaitingTime;
     public bool IsAuctionInProgress;
     public string Bidder;
 
@@ -98,8 +97,7 @@
         {
             AlertService.AddMessage(new Alert("L'asta è cominciata", AlertType.Info));
             IsAuctionInProgress = true;
-            WaitingTime = waitingTime;
-            RemainingTimeToNextPlayer = new TimeSpan(0, 0, WaitingTime);
+            RemainingTimeToNextPlayer = new TimeSpan(0, 0, waitingTime);
             StateHasChanged();
         });
 
@@ -113,7 +111,12 @@
                 Bidder = Bidder,
                 Amount = 0
             };
-            RemainingTimeToNextPlayer = new TimeSpan(0, 0, WaitingTime);
+            StateHasChanged();
+        });
+
+        _hubConnection.On<int>("WaitNextPlayer", waitingTime =>
+        {
+            RemainingTimeToNextPlayer = new TimeSpan(0, 0, waitingTime);
             StateHasChanged();
         });
 
@@ -133,7 +136,7 @@
         }
         else
         {
-            AlertService.AddMessage(new Alert("La tua offerta non può essere inviata, salti questo turno", AlertType.Danger));
+            //AlertService.AddMessage(new Alert("La tua offerta non può essere inviata, salti questo turno", AlertType.Danger));
         }
 
         Player = null;

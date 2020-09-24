@@ -3,8 +3,8 @@
 @inject HttpClient Http
 
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-12 justify-content-center">
+    <div class="row justify-content-center">
+        <div class="col-12">
             <button class="btn btn-primary"
                     @onclick="StartAutomaticAuction">
                 Inizio asta automatica
@@ -15,57 +15,60 @@
             </button>
         </div>
     </div>
+
+    <div class="row">
+        <div class="col-12">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Nome giocatore</th>
+                        <th>Costo</th>
+                        <th>Squadra</th>
+                        <th>Azioni</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Players == null)
+                    {
+                        <p>
+                            <em>Loading...</em>
+                        </p>
+                    }
+                    else
+                    {
+
+                        @foreach (var giocatore in Players)
+                        {
+                            <tr>
+                                <td>
+                                    <img src="@giocatore.Img" />
+                                </td>
+                                <td>@giocatore.Nome</td>
+                                <td>@giocatore.Costo</td>
+                                <td>@giocatore.Squadra.Nome</td>
+                                <td>
+                                    <button disabled="@AuctionState"
+                                            @onclick="() => StartPlayerNegotiation(giocatore.Id)">
+                                        Negozia giocatore
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
-
-@if (Players != null)
-{
-    <p>
-        <em>Loading...</em>
-    </p>
-}
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th></th>
-                <th>Nome giocatore</th>
-                <th>Costo</th>
-                <th>Squadra</th>
-                <th>Azioni</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var giocatore in Players)
-            {
-                <tr>
-                    <td>
-                        <img src="@giocatore.Img" />
-                    </td>
-                    <td>@giocatore.Nome</td>
-                    <td>@giocatore.Costo</td>
-                    <td>@giocatore.Squadra.Nome</td>
-                    <td>
-                        <button disabled="@AuctionState"
-                                @onclick="() => StartPlayerNegotiation(giocatore.Id)">
-                            Negozia giocatore
-                        </button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-
 @code {
-    public IEnumerable<Player> Players;
+    public Player[] Players;
     public bool AuctionState;
 
     protected override async Task OnInitializedAsync()
     {
-        // var a = await Http.GetAsync("api/Auction/GetPlayers");
-        Players = new List<Player>();
+        Players = await Http.GetFromJsonAsync<Player[]>("api/Auction/GetPlayers");
     }
 
     private async void StartAutomaticAuction()
