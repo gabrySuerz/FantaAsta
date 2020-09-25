@@ -12,18 +12,18 @@
         <h1>Aspettando l'inizio dell'asta</h1>
     </div>
 }
-@if (IsAuctionInProgress && Player == null)
+@if (IsAuctionInProgress && RemainingTimeToNextPlayer.HasValue)
 {
     <div class="align-items-center d-flex flex-column justify-content-center">
         <h1>Aspettando il prossimo giocatore</h1>
-        <Timer Time="@RemainingTimeToNextPlayer"></Timer>
+        <Timer Time="@RemainingTimeToNextPlayer.Value"></Timer>
     </div>
 }
-@if (Player != null)
+@if (RemainingTimeToBid.HasValue)
 {
     <div class="align-items-center d-flex flex-column justify-content-center">
         <h1>All'invio dell'offerta mancano</h1>
-        <Timer Time="@RemainingTimeToBid"
+        <Timer Time="@RemainingTimeToBid.Value"
                TimeFinished="e => SendBidAndClear()">
         </Timer>
     </div>
@@ -79,8 +79,8 @@
 @code {
     private HubConnection _hubConnection;
 
-    public TimeSpan RemainingTimeToNextPlayer;
-    public TimeSpan RemainingTimeToBid;
+    public TimeSpan? RemainingTimeToNextPlayer;
+    public TimeSpan? RemainingTimeToBid;
     public Player Player;
     public Bid Bid;
     public bool IsAuctionInProgress;
@@ -103,6 +103,7 @@
 
         _hubConnection.On<Player>("ReceivePlayer", player =>
         {
+            RemainingTimeToNextPlayer = null;
             RemainingTimeToBid = new TimeSpan(0, 0, 20);
             Player = player;
             Bid = new Bid
@@ -116,6 +117,7 @@
 
         _hubConnection.On<int>("WaitNextPlayer", waitingTime =>
         {
+            RemainingTimeToBid = null;
             RemainingTimeToNextPlayer = new TimeSpan(0, 0, waitingTime);
             StateHasChanged();
         });
@@ -136,7 +138,7 @@
         }
         else
         {
-            //AlertService.AddMessage(new Alert("La tua offerta non può essere inviata, salti questo turno", AlertType.Danger));
+            AlertService.AddMessage(new Alert("La tua offerta non può essere inviata, salti questo turno", AlertType.Danger));
         }
 
         Player = null;

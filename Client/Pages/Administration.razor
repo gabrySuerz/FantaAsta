@@ -1,5 +1,6 @@
 @page "/administration"
 @using FantasyAuction.Shared
+@using BlazorTable
 @inject HttpClient Http
 
 <div class="container-fluid">
@@ -18,46 +19,26 @@
 
     <div class="row">
         <div class="col-12">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>Nome giocatore</th>
-                        <th>Costo</th>
-                        <th>Squadra</th>
-                        <th>Azioni</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Players == null)
-                    {
-                        <p>
-                            <em>Loading...</em>
-                        </p>
-                    }
-                    else
-                    {
-
-                        @foreach (var giocatore in Players)
-                        {
-                            <tr>
-                                <td>
-                                    <img src="@giocatore.Img" />
-                                </td>
-                                <td>@giocatore.Nome</td>
-                                <td>@giocatore.Costo</td>
-                                <td>@giocatore.Squadra.Nome</td>
-                                <td>
-                                    <button disabled="@AuctionState"
-                                            @onclick="() => StartPlayerNegotiation(giocatore.Id)">
-                                        Negozia giocatore
-                                    </button>
-                                </td>
-                            </tr>
-                        }
-                    }
-                </tbody>
-            </table>
+            @if (Players == null)
+            {
+                <p>
+                    <em>Loading...</em>
+                </p>
+            }
+            else
+            {
+                <Table TableItem="Player" Items="Players" PageSize="15">
+                    <Column TableItem="Player" Title="Immagine" Field="@(x => x.Img)" Sortable="true" Filterable="true" Width="25%">
+                        <Template>
+                            <img src="@context.Img" />
+                        </Template>
+                    </Column>
+                    <Column TableItem="Player" Title="Nome" Field="@(x => x.Nome)" Sortable="true" Filterable="true" Width="20%" />
+                    <Column TableItem="Player" Title="Prezzo" Field="@(x => x.Costo)" Sortable="true" Filterable="true" Width="20%" />
+                    <Column TableItem="Player" Title="Squadra" Field="@(x => x.Squadra.Nome)" Sortable="true" Filterable="true" Width="20%" />
+                    <Pager ShowPageNumber="true" ShowTotalCount="true" />
+                </Table>
+            }
         </div>
     </div>
 </div>
@@ -65,6 +46,7 @@
 @code {
     public Player[] Players;
     public bool AuctionState;
+    public string FilterText;
 
     protected override async Task OnInitializedAsync()
     {

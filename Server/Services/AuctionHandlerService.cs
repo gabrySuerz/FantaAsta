@@ -133,7 +133,7 @@ namespace FantasyAuction.Server.Services
             {
                 var player = playersToPick.First();
                 await _auctionAuction.Clients.All.SendAsync("ReceivePlayer", player);
-                Thread.Sleep(30000);
+                Thread.Sleep(20000);
                 playersToPick = playersToPick.Where(g => g.Id != player.Id).ToList();
                 await _auctionAuction.Clients.All.SendAsync("WaitNextPlayer", 10);
                 Thread.Sleep(10000);
