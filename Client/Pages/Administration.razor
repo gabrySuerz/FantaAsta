@@ -1,10 +1,23 @@
 @page "/administration"
 @using FantasyAuction.Shared
 @using BlazorTable
+@using FantasyAuction.Client.Entities
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager NavigationManager
 @inject HttpClient Http
 
+<style>
+    .players .table-responsive {
+        height: 70vh;
+    }
+
+    .bids .table-responsive {
+        height: 30vh;
+    }
+</style>
+
 <div class="container-fluid">
-    <div class="row justify-content-center">
+    <div class="justify-content-center row">
         <div class="col-12">
             <button class="btn btn-primary"
                     @onclick="StartAutomaticAuction">
@@ -12,45 +25,113 @@
             </button>
             <button class="btn btn-primary"
                     @onclick="RefreshPlayers">
-                Ricarica giocatori
+                Ricarica dati dei giocatori
             </button>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-12">
-            @if (Players == null)
-            {
-                <p>
-                    <em>Loading...</em>
-                </p>
-            }
-            else
-            {
-                <Table TableItem="Player" Items="Players" PageSize="15">
-                    <Column TableItem="Player" Title="Immagine" Field="@(x => x.Img)" Sortable="true" Filterable="true" Width="25%">
-                        <Template>
-                            <img src="@context.Img" />
-                        </Template>
-                    </Column>
-                    <Column TableItem="Player" Title="Nome" Field="@(x => x.Nome)" Sortable="true" Filterable="true" Width="20%" />
-                    <Column TableItem="Player" Title="Prezzo" Field="@(x => x.Costo)" Sortable="true" Filterable="true" Width="20%" />
-                    <Column TableItem="Player" Title="Squadra" Field="@(x => x.Squadra.Nome)" Sortable="true" Filterable="true" Width="20%" />
-                    <Pager ShowPageNumber="true" ShowTotalCount="true" />
-                </Table>
-            }
+    <div class="mt-3 row">
+        <div class="col-12 players">
+            <Table Items="Players"
+                   PageSize="15"
+                   TableItem="Player">
+                <Column Field="@(x => x.Img)"
+                        Filterable="true"
+                        Sortable="true"
+                        TableItem="Player"
+                        Title="Immagine"
+                        Width="25%">
+                    <Template>
+                        <img src="@context.Img" />
+                    </Template>
+                </Column>
+                <Column Field="@(x => x.Nome)"
+                        Filterable="true"
+                        Sortable="true"
+                        TableItem="Player"
+                        Title="Nome"
+                        Width="20%" />
+                <Column Field="@(x => x.Costo)"
+                        Filterable="true"
+                        Sortable="true"
+                        TableItem="Player"
+                        Title="Prezzo"
+                        Width="20%" />
+                <Column Field="@(x => x.Squadra.Nome)"
+                        Filterable="true"
+                        Sortable="true"
+                        TableItem="Player"
+                        Title="Squadra"
+                        Width="20%" />
+                <Column Field="@(x => x.Id)"
+                        Filterable="false"
+                        Sortable="false"
+                        TableItem="Player"
+                        Title="Azioni"
+                        Width="10%">
+                    <Template>
+                        <button class="btn btn-secondary"
+                                disabled="@AuctionState"
+                                @onclick="() => StartPlayerNegotiation(context)">
+                            Negozia giocatore
+                        </button>
+                    </Template>
+                </Column>
+                <Pager ShowPageNumber="true"
+                       ShowTotalCount="true" />
+            </Table>
         </div>
     </div>
 </div>
 
+<Modal @ref="modal">
+    <Title>Negoziazione di @CurrentPlayer?.Nome</Title>
+    <Body>
+        <div class="bids">
+            <Table Items="Bids"
+                   PageSize="15"
+                   TableItem="Bid">
+                <Column Field="@(x => x.Amount)"
+                        Filterable="true"
+                        Sortable="true"
+                        TableItem="Bid"
+                        Title="Offerta"
+                        Width="20%" />
+                <Column Field="@(x => x.Bidder)"
+                        Filterable="true"
+                        Sortable="true"
+                        TableItem="Bid"
+                        Title="Nome offerente"
+                        Width="20%" />
+                <Pager ShowPageNumber="true"
+                       ShowTotalCount="true" />
+            </Table>
+        </div>
+    </Body>
+    <Footer>
+        <button class="btn btn-secondary"
+                data-dismiss="modal"
+                @onclick="() => ClearPlayer()"
+                type="button">
+            Close
+        </button>
+    </Footer>
+</Modal>
+
 @code {
-    public Player[] Players;
-    public bool AuctionState;
-    public string FilterText;
+    private Player[] Players;
+    private bool AuctionState;
+    private Player CurrentPlayer;
+    private Bid[] Bids;
+
+    private Modal modal { get; set; }
+
+    private HubConnection _hubConnection;
 
     protected override async Task OnInitializedAsync()
     {
         Players = await Http.GetFromJsonAsync<Player[]>("api/Auction/GetPlayers");
+        Bids = new Bid[] { };
     }
 
     private async void StartAutomaticAuction()
@@ -58,14 +139,38 @@
         await Http.PatchAsync($"api/Auction/StartAuction", null);
     }
 
-    private async void StartPlayerNegotiation(string playerId)
+    private async void StartPlayerNegotiation(Player player)
     {
-        await Http.PatchAsync($"api/Auction/StartPlayerNegotiation/{playerId}", null);
+        CurrentPlayer = player;
+        modal.Open();
+
+        _hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/auction-hub"))
+            .Build();
+
+        _hubConnection.On<Bid>("ReceivedBid", bid =>
+        {
+            Bids = Bids.Append(bid).ToArray();
+            StateHasChanged();
+        });
+
+        await _hubConnection.StartAsync();
+
+        await Http.PatchAsync($"api/Auction/StartPlayerNegotiation/{player.Id}", null);
     }
 
     private async void RefreshPlayers()
     {
         await Http.PatchAsync($"api/Auction/RefreshPlayersData", null);
+    }
+
+    private void ClearPlayer()
+    {
+        CurrentPlayer = null;
+        Bids = new Bid[] { };
+        modal.Close();
+        _ = _hubConnection.DisposeAsync();
+        StateHasChanged();
     }
 
 }

@@ -27,37 +27,42 @@
         font-size: 16px;
     }
 </style>
-<div id="clockdiv">
-    <div>
-        <span>@Time.Days</span>
-        <div class="smalltext">Days</div>
+@if (Time.HasValue)
+{
+    <div id="clockdiv">
+        <div>
+            <span>@Time.Value.Days</span>
+            <div class="smalltext">Days</div>
+        </div>
+        <div>
+            <span>@Time.Value.Hours</span>
+            <div class="smalltext">Hours</div>
+        </div>
+        <div>
+            <span>@Time.Value.Minutes</span>
+            <div class="smalltext">Minutes</div>
+        </div>
+        <div>
+            <span>@Time.Value.Seconds</span>
+            <div class="smalltext">Seconds</div>
+        </div>
     </div>
-    <div>
-        <span>@Time.Hours</span>
-        <div class="smalltext">Hours</div>
-    </div>
-    <div>
-        <span>@Time.Minutes</span>
-        <div class="smalltext">Minutes</div>
-    </div>
-    <div>
-        <span>@Time.Seconds</span>
-        <div class="smalltext">Seconds</div>
-    </div>
-</div>
-
+}
 @code {
 
     private TimeSpan _time;
 
     [Parameter]
-    public TimeSpan Time
+    public TimeSpan? Time
     {
         get => _time;
         set
         {
-            _time = value;
-            StartCountdown();
+            if (value.HasValue)
+            {
+                _time = value.Value;
+                StartCountdown();
+            }
         }
     }
 
@@ -74,7 +79,7 @@
             await Task.Delay(1000);
             _time = _time.Subtract(new TimeSpan(0, 0, 1));
             StateHasChanged();
-            await TimeChanged.InvokeAsync(Time);
+            await TimeChanged.InvokeAsync(_time);
         }
 
         await TimeFinished.InvokeAsync(true);

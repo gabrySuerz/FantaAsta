@@ -53,6 +53,10 @@ namespace FantasyAuction.Server.Services
             {
                 var endpointResponse = JsonConvert.DeserializeObject<EndpointResponse>(response.Content.ReadAsStringAsync().Result);
                 _players = _mapper.Map<IEnumerable<Player>>(endpointResponse.Data);
+                foreach (var player in _players.ToList().Where(p => !p.Img.ToLower().StartsWith("http://") && !p.Img.ToLower().StartsWith("https://")))
+                {
+                    player.Img = $"https://www.fantaformazione.com/{player.Img}";
+                }
             }
             else
             {
@@ -178,7 +182,7 @@ namespace FantasyAuction.Server.Services
         public void StartPlayerNegotiation(string playerId)
         {
             var giocatore = _players.FirstOrDefault(p => p.Id == playerId);
-            _auctionAuction.Clients.All.SendAsync("InvioGiocatore", giocatore);
+            _auctionAuction.Clients.All.SendAsync("ReceivePlayer", giocatore);
         }
 
         public IEnumerable<SoldPlayer> GetSoldPlayers()
