@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-
-namespace FantasyAuction.Shared
+﻿namespace FantasyAuction.Shared
 {
     public class Player
     {

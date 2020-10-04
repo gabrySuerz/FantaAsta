@@ -1,4 +1,4 @@
-﻿namespace FantasyAuction.Shared
+﻿namespace FantasyAuction.Server.Entities
 {
     public class DataApi
     {

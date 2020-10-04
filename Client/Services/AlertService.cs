@@ -11,17 +11,17 @@ namespace FantasyAuction.Client.Services
 
         public AlertService()
         {
-            this.Messages = new List<IAlert>();
+            Messages = new List<IAlert>();
         }
 
         public void AddMessage(Alert alert)
         {
             Messages.Add(alert);
-            System.Console.WriteLine("Message count: {0}", this.Messages.Count);
+            Console.WriteLine("Message count: {0}", Messages.Count);
             RefreshRequested?.Invoke();
 
             // pop message off after a delay
-            new System.Threading.Timer((_) => {
+            _ = new System.Threading.Timer((_) => {
                 Messages.RemoveAt(0);
                 RefreshRequested?.Invoke();
             }, null, 8000, System.Threading.Timeout.Infinite);
