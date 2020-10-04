@@ -50,6 +50,7 @@
 }
 @code {
 
+    private bool Counting;
     private TimeSpan _time;
 
     [Parameter]
@@ -58,7 +59,7 @@
         get => _time;
         set
         {
-            if (value.HasValue)
+            if (value.HasValue && !Counting)
             {
                 _time = value.Value;
                 StartCountdown();
@@ -66,23 +67,25 @@
         }
     }
 
-    [Parameter]
-    public EventCallback<TimeSpan> TimeChanged { get; set; }
+    //[Parameter]
+    //public EventCallback<TimeSpan> TimeChanged { get; set; }
 
     [Parameter]
     public EventCallback<bool> TimeFinished { get; set; }
 
     private async void StartCountdown()
     {
+        Counting = true;
         while (_time > new TimeSpan())
         {
             await Task.Delay(1000);
             _time = _time.Subtract(new TimeSpan(0, 0, 1));
             StateHasChanged();
-            await TimeChanged.InvokeAsync(_time);
+            //await TimeChanged.InvokeAsync(_time);
         }
 
-        await TimeFinished.InvokeAsync(true);
+        await TimeFinished.InvokeAsync(Counting);
+        Counting = false;
     }
 
 }

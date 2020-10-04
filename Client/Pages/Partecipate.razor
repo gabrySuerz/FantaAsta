@@ -62,12 +62,12 @@
     <div class="align-items-center d-flex flex-column justify-content-center">
         <div class="card text-center">
             <div class="card-img-top">
-                <img alt="@Player.Nome"
+                <img alt="@Player.Name"
                      src="@Player.Img" />
             </div>
             <div class="card-body">
-                <h5 class="card-title">@Player.Nome</h5>
-                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                <h5 class="card-title">@Player.Name</h5>
+                <p class="card-text">Squadra: @Player.Team.Name, Ruolo: @Player.Role - @Player.SpecificRole, Costo indicato: @Player.Cost FM</p>
                 <div class="input-group mb-3">
                     <div class="input-group-prepend">
                         <span class="input-group-text">FM</span>
@@ -95,7 +95,6 @@
     public TimeSpan? RemainingTimeToNextPlayer;
     public TimeSpan? RemainingTimeToBid;
     public Player Player;
-    public Bid Bid;
     public bool IsAuctionInProgress;
     public string Bidder;
     public int Amount;
@@ -139,26 +138,23 @@
     /// <summary>
     /// When the time is expired the sends the bid
     /// </summary>
-    private async void SendBidAndClear()
+    private void SendBidAndClear()
     {
         if (Connected && !string.IsNullOrWhiteSpace(Bidder) && Player != null)
         {
-            Bid = new Bid
+            SendBid(new Bid
             {
                 PlayerId = Player.Id,
                 Bidder = Bidder,
                 Amount = Amount
-            };
-            await SendBid();
-
-            Player = null;
-            Bid = null;
+            });
         }
-        else if(!Connected || string.IsNullOrWhiteSpace(Bidder))
+        else if (!Connected || string.IsNullOrWhiteSpace(Bidder))
         {
             AlertService.AddMessage(new Alert("La tua offerta non può essere inviata, salti questo turno", AlertType.Danger));
         }
 
+        Player = null;
         RemainingTimeToBid = null;
         StateHasChanged();
     }
@@ -166,10 +162,11 @@
     /// <summary>
     /// Send the bid
     /// </summary>
-    /// <returns></returns>
-    private Task SendBid()
+    /// <param name="bid">the bid</param>
+    /// <returns>The task which send the bid</returns>
+    private Task SendBid(Bid bid)
     {
-        return _hubConnection.SendAsync("SendBid", Bid);
+        return _hubConnection.SendAsync("SendBid", bid);
     }
 
     /// <summary>

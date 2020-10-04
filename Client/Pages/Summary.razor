@@ -1,48 +1,64 @@
 @page "/summary"
 @using FantasyAuction.Shared
+@using BlazorTable
 @inject HttpClient Http
 
-<h1>Riepilogo asta</h1>
+<style>
+    .players .table-responsive {
+        height: 70vh;
+    }
+</style>
 
-@if (SoldPlayers == null)
-{
-    <p>
-        <em>Loading...</em>
-    </p>
-}
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th></th>
-                <th>Nome giocatore</th>
-                <th>Offerente vincitore</th>
-                <th>Importo</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var soldPlayer in SoldPlayers)
-            {
-                <tr>
-                    <td>
-                        <img src="@soldPlayer.Player?.Img" />
-                    </td>
-                    <td>@soldPlayer.Player?.Nome</td>
-                    <td>@soldPlayer.BiddingWinner</td>
-                    <td>@soldPlayer.OfferAmount</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+<div class="container-fluid">
+    <div class="row">
+        <h1>Riepilogo asta</h1>
+    </div>
+    <div class="row">
+        <div class="col-12 players">
+            <Table Items="SoldPlayers"
+                   PageSize="15"
+                   TableItem="SoldPlayer">
+                <Column Field="@(x => x.Player.Img)"
+                        Filterable="true"
+                        Sortable="true"
+                        TableItem="SoldPlayer"
+                        Title="Immagine"
+                        Width="20%">
+                    <Template>
+                        <img src="@context.Player.Img" />
+                    </Template>
+                </Column>
+                <Column Field="@(x => x.Player.Name)"
+                        Filterable="true"
+                        Sortable="true"
+                        TableItem="SoldPlayer"
+                        Title="Nome"
+                        Width="20%" />
+                <Column Field="@(x => x.BiddingWinner)"
+                        Filterable="true"
+                        Sortable="true"
+                        TableItem="SoldPlayer"
+                        Title="Offerente"
+                        Width="20%" />
+                <Column Field="@(x => x.OfferAmount)"
+                        Filterable="true"
+                        Sortable="true"
+                        TableItem="SoldPlayer"
+                        Title="Offerta"
+                        Width="20%" />
+                <Pager ShowPageNumber="true"
+                       ShowTotalCount="true" />
+            </Table>
+        </div>
+    </div>
+</div>
 
 @code {
     public SoldPlayer[] SoldPlayers;
 
     protected override async Task OnInitializedAsync()
     {
-        SoldPlayers = await Http.GetFromJsonAsync<SoldPlayer[]>("api/Auction/SoldPlayers");
+        SoldPlayers = await Http.GetFromJsonAsync<SoldPlayer[]>("api/Auction/GetSoldPlayers");
     }
 
 }

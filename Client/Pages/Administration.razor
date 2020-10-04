@@ -20,6 +20,7 @@
     <div class="justify-content-center row">
         <div class="col-12">
             <button class="btn btn-primary"
+                    disabled
                     @onclick="StartAutomaticAuction">
                 Inizio asta automatica
             </button>
@@ -40,29 +41,43 @@
                         Sortable="true"
                         TableItem="Player"
                         Title="Immagine"
-                        Width="25%">
+                        Width="20%">
                     <Template>
                         <img src="@context.Img" />
                     </Template>
                 </Column>
-                <Column Field="@(x => x.Nome)"
+                <Column Field="@(x => x.Name)"
                         Filterable="true"
                         Sortable="true"
                         TableItem="Player"
                         Title="Nome"
                         Width="20%" />
-                <Column Field="@(x => x.Costo)"
+                <Column Field="@(x => x.Cost)"
                         Filterable="true"
                         Sortable="true"
                         TableItem="Player"
-                        Title="Prezzo"
+                        Title="Costo indicato"
                         Width="20%" />
-                <Column Field="@(x => x.Squadra.Nome)"
+                <Column Field="@(x => x.Team.Name)"
                         Filterable="true"
                         Sortable="true"
                         TableItem="Player"
                         Title="Squadra"
                         Width="20%" />
+                <Column Field="@(x => x.Role)"
+                        Filterable="true"
+                        Sortable="true"
+                        TableItem="Player"
+                        Title="Ruolo"
+                        Width="15%">
+                </Column>
+                <Column Field="@(x => x.SpecificRole)"
+                        Filterable="false"
+                        Sortable="true"
+                        TableItem="Player"
+                        Title="Ruolo specifico"
+                        Width="15%">
+                </Column>
                 <Column Field="@(x => x.Id)"
                         Filterable="false"
                         Sortable="false"
@@ -84,8 +99,8 @@
     </div>
 </div>
 
-<Modal @ref="modal">
-    <Title>Negoziazione di @CurrentPlayer?.Nome</Title>
+<Modal @ref="Modal">
+    <Title>Negoziazione di @CurrentPlayer?.Name</Title>
     <Body>
         <div class="bids">
             <Table Items="Bids"
@@ -124,7 +139,7 @@
     private Player CurrentPlayer;
     private Bid[] Bids;
 
-    private Modal modal { get; set; }
+    private Modal Modal { get; set; }
 
     private HubConnection _hubConnection;
 
@@ -142,7 +157,7 @@
     private async void StartPlayerNegotiation(Player player)
     {
         CurrentPlayer = player;
-        modal.Open();
+        Modal.Open();
 
         _hubConnection = new HubConnectionBuilder()
             .WithUrl(NavigationManager.ToAbsoluteUri("/auction-hub"))
@@ -168,7 +183,7 @@
     {
         CurrentPlayer = null;
         Bids = new Bid[] { };
-        modal.Close();
+        Modal.Close();
         _ = _hubConnection.DisposeAsync();
         StateHasChanged();
     }
