@@ -106,7 +106,7 @@
             .WithUrl(NavigationManager.ToAbsoluteUri("/auction-hub"))
             .Build();
 
-        _hubConnection.On<int>("StartAuction", (waitingTime) =>
+        _hubConnection.On<int>("AuctionStarted", waitingTime =>
         {
             AlertService.AddMessage(new Alert("L'asta è cominciata", AlertType.Info));
             IsAuctionInProgress = true;
@@ -114,10 +114,10 @@
             StateHasChanged();
         });
 
-        _hubConnection.On<Player>("ReceivePlayer", player =>
+        _hubConnection.On<Player, int>("ReceivePlayer", (player, biddingTime) =>
         {
             RemainingTimeToNextPlayer = null;
-            RemainingTimeToBid = new TimeSpan(0, 0, 20);
+            RemainingTimeToBid = new TimeSpan(0, 0, biddingTime);
             Player = player;
             Amount = 0;
             StateHasChanged();

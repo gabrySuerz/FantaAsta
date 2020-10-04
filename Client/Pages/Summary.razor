@@ -13,7 +13,21 @@
     <div class="row">
         <h1>Riepilogo asta</h1>
     </div>
-    <div class="row">
+
+    <div class="justify-content-center row">
+        <div class="col-12">
+            <button @onclick="ClearSoldPlayers"
+                    class="btn btn-danger">
+                Eliminare il riepilogo giocatori
+            </button>
+            <button class="btn btn-primary"
+                    @onclick="RefreshSoldPlayersList">
+                Ricarica i giocatori venduti
+            </button>
+        </div>
+    </div>
+
+    <div class="row mt-3">
         <div class="col-12 players">
             <Table Items="SoldPlayers"
                    PageSize="15"
@@ -59,6 +73,17 @@
     protected override async Task OnInitializedAsync()
     {
         SoldPlayers = await Http.GetFromJsonAsync<SoldPlayer[]>("api/Auction/GetSoldPlayers");
+    }
+
+    private async void RefreshSoldPlayersList()
+    {
+        SoldPlayers = await Http.GetFromJsonAsync<SoldPlayer[]>("api/Auction/GetSoldPlayers");
+    }
+
+    private async void ClearSoldPlayers()
+    {
+        await Http.PatchAsync("api/Auction/ClearSoldPlayers", null);
+        RefreshSoldPlayersList();
     }
 
 }

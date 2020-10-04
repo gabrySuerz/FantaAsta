@@ -29,6 +29,12 @@ namespace FantasyAuction.Server.Services.Interfaces
         void StartAuction();
 
         /// <summary>
+        /// Ends the auction.
+        /// It will end the auction and notify all clients.
+        /// </summary>
+        void EndAuction();
+
+        /// <summary>
         /// Starts the player negotiation.
         /// It will send the player info to all clients.
         /// </summary>
@@ -46,5 +52,10 @@ namespace FantasyAuction.Server.Services.Interfaces
         /// </summary>
         /// <returns>List of sold players.</returns>
         IEnumerable<SoldPlayer> GetSoldPlayers();
+
+        /// <summary>
+        /// Clear the list of already sold players.
+        /// </summary>
+        void ClearSoldPlayers();
     }
 }

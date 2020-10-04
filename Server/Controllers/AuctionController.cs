@@ -1,8 +1,8 @@
-﻿using FantasyAuction.Shared;
+﻿using FantasyAuction.Server.Services.Interfaces;
+using FantasyAuction.Shared;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
-using FantasyAuction.Server.Services.Interfaces;
 
 namespace FantasyAuction.Server.Controllers
 {
@@ -28,12 +28,6 @@ namespace FantasyAuction.Server.Controllers
             return _auctionHandlerService.GetPlayers();
         }
 
-        [HttpGet("[action]")]
-        public bool AuctionState()
-        {
-            return _auctionHandlerService.GetAuctionState();
-        }
-
         [HttpPatch("[action]")]
         public void RefreshPlayersData()
         {
@@ -46,6 +40,12 @@ namespace FantasyAuction.Server.Controllers
             _auctionHandlerService.StartAuction();
         }
 
+        [HttpPatch("[action]")]
+        public void EndAuction()
+        {
+            _auctionHandlerService.EndAuction();
+        }
+
         [HttpPatch("[action]/{id}")]
         public void StartPlayerNegotiation([FromRoute] string id)
         {
@@ -56,6 +56,12 @@ namespace FantasyAuction.Server.Controllers
         public IEnumerable<SoldPlayer> GetSoldPlayers()
         {
             return _auctionHandlerService.GetSoldPlayers();
+        }
+
+        [HttpPatch("[action]")]
+        public void ClearSoldPlayers()
+        {
+            _auctionHandlerService.ClearSoldPlayers();
         }
     }
 }

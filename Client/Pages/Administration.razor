@@ -4,7 +4,9 @@
 @using FantasyAuction.Client.Entities
 @using Microsoft.AspNetCore.SignalR.Client
 @inject NavigationManager NavigationManager
+@inject SpinnerService SpinnerService
 @inject HttpClient Http
+@implements IDisposable
 
 <style>
     .players .table-responsive {
@@ -18,13 +20,26 @@
 
 <div class="container-fluid">
     <div class="justify-content-center row">
+        <h1>Gestione asta</h1>
+    </div>
+
+    <div class="justify-content-center row">
         <div class="col-12">
-            <button class="btn btn-primary"
-                    disabled
-                    @onclick="StartAutomaticAuction">
-                Inizio asta automatica
-            </button>
-            <button class="btn btn-primary"
+            @if (!AuctionState)
+            {
+                <button @onclick="StartAutomaticAuction"
+                        class="btn btn-primary">
+                    Inizio asta automatica
+                </button>
+            }
+            else
+            {
+                <button @onclick="EndAuction"
+                        class="btn btn-danger">
+                    Fine asta automatica
+                </button>
+            }
+            <button class="btn btn-warning"
                     @onclick="RefreshPlayers">
                 Ricarica dati dei giocatori
             </button>
@@ -126,7 +141,7 @@
     <Footer>
         <button class="btn btn-secondary"
                 data-dismiss="modal"
-                @onclick="() => ClearPlayer()"
+                @onclick="ClearPlayer"
                 type="button">
             Close
         </button>
@@ -145,23 +160,35 @@
 
     protected override async Task OnInitializedAsync()
     {
-        Players = await Http.GetFromJsonAsync<Player[]>("api/Auction/GetPlayers");
         Bids = new Bid[] { };
-    }
-
-    private async void StartAutomaticAuction()
-    {
-        await Http.PatchAsync($"api/Auction/StartAuction", null);
-    }
-
-    private async void StartPlayerNegotiation(Player player)
-    {
-        CurrentPlayer = player;
-        Modal.Open();
+        Players = await Http.GetFromJsonAsync<Player[]>("api/Auction/GetPlayers");
 
         _hubConnection = new HubConnectionBuilder()
             .WithUrl(NavigationManager.ToAbsoluteUri("/auction-hub"))
             .Build();
+
+        await _hubConnection.StartAsync();
+    }
+
+    private async void StartAutomaticAuction()
+    {
+        _hubConnection.On("AuctionEnded", () =>
+        {
+            _hubConnection.Remove("AuctionEnded");
+            AuctionState = false;
+            StateHasChanged();
+        });
+
+        await Http.PatchAsync($"api/Auction/StartAuction", null);
+        AuctionState = true;
+        StateHasChanged();
+    }
+
+    private async void StartPlayerNegotiation(Player player)
+    {
+        SpinnerService.Show();
+        CurrentPlayer = player;
+        Modal.Open();
 
         _hubConnection.On<Bid>("ReceivedBid", bid =>
         {
@@ -169,14 +196,19 @@
             StateHasChanged();
         });
 
-        await _hubConnection.StartAsync();
-
         await Http.PatchAsync($"api/Auction/StartPlayerNegotiation/{player.Id}", null);
     }
 
     private async void RefreshPlayers()
     {
         await Http.PatchAsync($"api/Auction/RefreshPlayersData", null);
+        Players = await Http.GetFromJsonAsync<Player[]>("api/Auction/GetPlayers");
+        StateHasChanged();
+    }
+
+    private async void EndAuction()
+    {
+        await Http.PatchAsync($"api/Auction/EndAuction", null);
     }
 
     private void ClearPlayer()
@@ -184,8 +216,13 @@
         CurrentPlayer = null;
         Bids = new Bid[] { };
         Modal.Close();
-        _ = _hubConnection.DisposeAsync();
+
         StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        _ = _hubConnection.DisposeAsync();
     }
 
 }
