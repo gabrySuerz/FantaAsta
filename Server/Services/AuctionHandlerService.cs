@@ -155,7 +155,7 @@ namespace FantasyAuction.Server.Services
         public void StartPlayerNegotiation(string playerId)
         {
             var giocatore = _players.FirstOrDefault(p => p.Id == playerId);
-            _auctionAuction.Clients.All.SendAsync("ReceivePlayer", giocatore);
+            _auctionAuction.Clients.All.SendAsync("ReceivePlayer", giocatore, _biddingTime);
         }
 
         public IEnumerable<SoldPlayer> GetSoldPlayers()
