@@ -149,6 +149,7 @@
 </Modal>
 
 @code {
+    private string ConnectionId;
     private Player[] Players;
     private bool AuctionState;
     private Player CurrentPlayer;
@@ -167,6 +168,8 @@
             .WithUrl(NavigationManager.ToAbsoluteUri("/auction-hub"))
             .Build();
 
+        ConnectionId = _hubConnection.ConnectionId;
+
         await _hubConnection.StartAsync();
     }
 
@@ -179,7 +182,7 @@
             StateHasChanged();
         });
 
-        await Http.PatchAsync($"api/Auction/StartAuction", null);
+        await Http.PatchAsync($"api/Auction/StartAuction?connectionId={ConnectionId}", null);
         AuctionState = true;
         StateHasChanged();
     }
@@ -196,7 +199,7 @@
             StateHasChanged();
         });
 
-        await Http.PatchAsync($"api/Auction/StartPlayerNegotiation/{player.Id}", null);
+        await Http.PatchAsync($"api/Auction/StartPlayerNegotiation/{player.Id}?connectionId={ConnectionId}", null);
     }
 
     private async void RefreshPlayers()

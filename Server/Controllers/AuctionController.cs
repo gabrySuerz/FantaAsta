@@ -35,9 +35,9 @@ namespace FantasyAuction.Server.Controllers
         }
 
         [HttpPatch("[action]")]
-        public void StartAuction()
+        public void StartAuction([FromQuery] string connectionId)
         {
-            _auctionHandlerService.StartAuction();
+            _auctionHandlerService.StartAuction(connectionId);
         }
 
         [HttpPatch("[action]")]
@@ -47,9 +47,9 @@ namespace FantasyAuction.Server.Controllers
         }
 
         [HttpPatch("[action]/{id}")]
-        public void StartPlayerNegotiation([FromRoute] string id)
+        public void StartPlayerNegotiation([FromRoute] string id, [FromQuery] string connectionId)
         {
-            _auctionHandlerService.StartPlayerNegotiation(id);
+            _auctionHandlerService.StartPlayerNegotiation(id, connectionId);
         }
 
         [HttpGet("[action]")]

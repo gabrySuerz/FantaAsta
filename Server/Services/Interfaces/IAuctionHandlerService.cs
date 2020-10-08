@@ -23,10 +23,17 @@ namespace FantasyAuction.Server.Services.Interfaces
         bool GetAuctionState();
 
         /// <summary>
+        /// Gets the administrator connection identifier.
+        /// </summary>
+        /// <returns>The string id</returns>
+        string GetAdministratorConnectionId();
+
+        /// <summary>
         /// Starts the auction.
         /// It will automatically send a new player every 30 sec to all clients.
         /// </summary>
-        void StartAuction();
+        /// <param name="connectionId">The identifier created by SignalR.</param>
+        void StartAuction(string connectionId);
 
         /// <summary>
         /// Ends the auction.
@@ -39,7 +46,8 @@ namespace FantasyAuction.Server.Services.Interfaces
         /// It will send the player info to all clients.
         /// </summary>
         /// <param name="playerId">The player identifier.</param>
-        void StartPlayerNegotiation(string playerId);
+        /// <param name="connectionId">The identifier created by SignalR.</param>
+        void StartPlayerNegotiation(string playerId, string connectionId);
 
         /// <summary>
         /// Adds the bid and selects the winner of the current pick.

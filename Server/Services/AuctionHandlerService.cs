@@ -26,6 +26,7 @@ namespace FantasyAuction.Server.Services
         private bool _isAuctionInProgress;
         private IEnumerable<Player> _players;
         private IEnumerable<SoldPlayer> _soldPlayers;
+        private string _connectionId;
         private int _biddingTime;
         private int _waitingTime;
 
@@ -77,12 +78,13 @@ namespace FantasyAuction.Server.Services
             return _players;
         }
 
-        public void StartAuction()
+        public void StartAuction(string connectionId)
         {
             if (!_isAuctionInProgress)
             {
                 _ = new Task(() =>
                 {
+                    _connectionId = connectionId;
                     ClearAndStart();
                     ExecuteAuction();
                     EndAuction();
@@ -151,6 +153,10 @@ namespace FantasyAuction.Server.Services
             return _isAuctionInProgress;
         }
 
+        public string GetAdministratorConnectionId()
+        {
+            return _connectionId;
+        }
 
         public void StartPlayerNegotiation(string playerId)
         {

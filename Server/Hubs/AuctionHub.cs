@@ -21,7 +21,9 @@ namespace FantasyAuction.Server.Hubs
             }
             else
             {
-                await Clients.All.SendAsync("ReceivedBid", bid);
+                string connId = _auctionHandlerService.GetAdministratorConnectionId();
+                _auctionHandlerService.InsertAndCompareBid(bid);
+                await Clients.Client(connId).SendAsync("ReceivedBid", bid);
             }
         }
     }
