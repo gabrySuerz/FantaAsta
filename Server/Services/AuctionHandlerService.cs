@@ -158,7 +158,7 @@ namespace FantasyAuction.Server.Services
             return _connectionId;
         }
 
-        public void StartPlayerNegotiation(string playerId)
+        public void StartPlayerNegotiation(string playerId, string connectionId)
         {
             var giocatore = _players.FirstOrDefault(p => p.Id == playerId);
             _auctionAuction.Clients.All.SendAsync("ReceivePlayer", giocatore, _biddingTime);
