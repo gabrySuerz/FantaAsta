@@ -190,7 +190,7 @@
         CurrentPlayer = player;
         Modal.Open();
 
-        _hubConnection.On<Bid>("ReceivedBid", bid =>
+        _hubConnection.On<Bid>($"ReceivedBid-{player.Id}", bid =>
         {
             Bids = Bids.Append(bid).ToArray();
             StateHasChanged();
@@ -213,6 +213,7 @@
 
     private void ClearPlayer()
     {
+        _hubConnection.Remove($"ReceivedBid-{CurrentPlayer.Id}");
         SpinnerService.Hide();
         CurrentPlayer = null;
         Bids = new Bid[] { };

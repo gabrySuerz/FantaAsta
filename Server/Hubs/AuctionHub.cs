@@ -21,7 +21,7 @@ namespace FantasyAuction.Server.Hubs
             }
             else
             {
-                await Clients.All.SendAsync("ReceivedBid", bid);
+                await Clients.All.SendAsync($"ReceivedBid-{bid.PlayerId}", bid);
             }
         }
     }
